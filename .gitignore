@@ -1,0 +1,39 @@
+# Archivos de configuración sensibles
+php_action/db_connect.php
+config/service-account.json
+config/google_config.php
+
+# Archivos de sesión y caché
+*.log
+*.cache
+sessions/
+
+# Imágenes de productos (demasiado pesadas)
+assests/images/stock/*
+!assests/images/stock/.gitkeep
+
+# Archivos del sistema
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Dependencias (si usas composer)
+vendor/
+node_modules/
+
+# Backups
+*.bak
+*.backup
+*.old
+
+# Temporales
+tmp/
+temp/
+*.tmp
