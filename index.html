@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventario Scanner</title>
+    <link rel="manifest" href="pwa/manifest.json">
+    <meta name="theme-color" content="#008ea9">
+    <meta name="theme-color" content="#008ea9">
+    <style>
+        /* CLÍNICA SAN JAVIER - PREMIUM LANDING */
+        /* Colores: #a5bf00 (Verde), #008ea9 (Azul), #ffffff (Blanco) */
+
+        :root {
+            --verde: #a5bf00;
+            --azul: #008ea9;
+            --blanco: #ffffff;
+            --azul-oscuro: #006b80;
+            --sombra-suave: rgba(0, 142, 169, 0.15);
+            --sombra-fuerte: rgba(0, 142, 169, 0.25);
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(0px);
+            }
+
+            50% {
+                transform: translateY(-10px);
+            }
+
+            100% {
+                transform: translateY(0px);
+            }
+        }
+
+        body {
+            background-color: var(--blanco);
+            background-image:
+                radial-gradient(circle at 0% 0%, rgba(0, 142, 169, 0.03) 0%, transparent 50%),
+                radial-gradient(circle at 100% 100%, rgba(165, 191, 0, 0.05) 0%, transparent 50%);
+            color: var(--azul);
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 40px 20px;
+            box-sizing: border-box;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 50px;
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        .header img {
+            max-height: 100px;
+            margin-bottom: 20px;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 3rem;
+            background: linear-gradient(135deg, var(--azul), var(--verde));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 800;
+            letter-spacing: -1px;
+        }
+
+        .header p {
+            color: var(--azul);
+            margin-top: 15px;
+            font-size: 1.1rem;
+            opacity: 0.8;
+            font-weight: 500;
+        }
+
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 30px;
+            width: 100%;
+            max-width: 960px;
+            perspective: 1000px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border-radius: 24px;
+            padding: 40px;
+            text-align: center;
+            border: 1px solid rgba(0, 142, 169, 0.1);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 100%;
+            box-shadow: 0 15px 35px var(--sombra-suave);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            animation: fadeInUp 0.8s ease-out backwards;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Staggered Animation */
+        .card:nth-child(1) {
+            animation-delay: 0.2s;
+        }
+
+        .card:nth-child(2) {
+            animation-delay: 0.4s;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 6px;
+            background: linear-gradient(90deg, var(--azul), var(--verde));
+        }
+
+        .card:hover {
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 0 30px 60px rgba(0, 142, 169, 0.2);
+            border-color: rgba(165, 191, 0, 0.3);
+        }
+
+        .icon {
+            font-size: 4rem;
+            margin-bottom: 25px;
+            display: inline-block;
+            background: linear-gradient(135deg, rgba(0, 142, 169, 0.1), rgba(165, 191, 0, 0.1));
+            width: 100px;
+            height: 100px;
+            line-height: 100px;
+            border-radius: 50%;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        h2 {
+            font-size: 1.8rem;
+            margin-bottom: 15px;
+            color: var(--azul-oscuro);
+            font-weight: 700;
+        }
+
+        p.desc {
+            font-size: 1rem;
+            color: #5a7184;
+            line-height: 1.6;
+            margin-bottom: 35px;
+            flex-grow: 1;
+        }
+
+        .btn {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--verde) 0%, #9ab300 100%);
+            color: var(--blanco);
+            padding: 16px 32px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            width: 100%;
+            box-sizing: border-box;
+            box-shadow: 0 10px 20px rgba(165, 191, 0, 0.25);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(165, 191, 0, 0.4);
+            background: linear-gradient(135deg, #b8d600 0%, var(--verde) 100%);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid var(--azul);
+            color: var(--azul);
+            box-shadow: none;
+            background-size: 200% auto;
+            transition: 0.4s;
+        }
+
+        .btn-outline:hover {
+            background: var(--azul);
+            color: var(--blanco);
+            box-shadow: 0 10px 20px rgba(0, 142, 169, 0.25);
+            transform: translateY(-3px);
+        }
+
+        /* Install Guide */
+        #install-guide {
+            display: none;
+            margin-top: 30px;
+            background: #f8fafc;
+            border: 2px dashed var(--verde);
+            padding: 25px;
+            border-radius: 16px;
+            font-size: 0.95rem;
+            color: #475569;
+            max-width: 100%;
+            text-align: left;
+            animation: fadeInUp 0.5s ease-out;
+        }
+
+        #install-guide strong {
+            color: var(--azul);
+            display: block;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+        }
+
+        #install-guide ol {
+            padding-left: 20px;
+            margin: 0;
+        }
+
+        #install-guide li {
+            margin-bottom: 10px;
+        }
+
+        .mobile-only {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .mobile-only {
+                display: block;
+            }
+
+            .desktop-only {
+                display: none;
+            }
+
+            .card-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .header h1 {
+                font-size: 2.5rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="header">
+        <img src="logo/logo.jpeg" alt="Clínica San Javier" class="logo-animate">
+        <h1>Control de Inventario</h1>
+        <p>Sistema Centralizado de Gestión de Stock</p>
+    </div>
+
+    <div class="card-grid">
+        <!-- Mobile App Card -->
+        <div class="card">
+            <div>
+                <span class="icon">�</span>
+                <h2>Escáner Móvil v2.0</h2>
+                <p class="desc">
+                    Aplicación para celulares. Usa la cámara para escanear códigos de barra, verificar precios y
+                    consultar stock en tiempo real.
+                </p>
+                <div id="pwa-install-area" style="display: flex; flex-direction: column; gap: 15px;">
+                    <a href="pwa/index.html" class="btn" id="open-btn">Abrir Escáner Web</a>
+                    <button class="btn" id="install-btn" style="display:none;">⬇ Instalar App</button>
+                </div>
+
+                <div id="install-guide">
+                    <strong>📲 Cómo instalar en Android/iOS:</strong>
+                    <ol>
+                        <li>Abre el menú de tu navegador (⋮ o icono Compartir).</li>
+                        <li>Busca la opción <strong>"Agregar a Inicio"</strong> o "Instalar App".</li>
+                        <li>¡Listo! El icono aparecerá en tus aplicaciones.</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dashboard Card -->
+        <div class="card">
+            <div>
+                <span class="icon">�</span>
+                <h2>Panel Administrativo</h2>
+                <p class="desc">
+                    Gestión completa de inventario. Altas, bajas, modificación de productos y reportes de movimientos.
+                </p>
+                <div class="desktop-only text-muted" style="margin-bottom:10px; font-size:0.8rem; color:#64748b;">Acceso
+                    para PC</div>
+                <a href="index.php" class="btn btn-outline">Ingresar al Sistema</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Register Service Worker
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js')
+                .then(() => console.log('Service Worker Registered'));
+        }
+
+        // Install Prompt Logic
+        let deferredPrompt;
+        const installBtn = document.getElementById('install-btn');
+        const guide = document.getElementById('install-guide');
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            installBtn.style.display = 'inline-block';
+            guide.style.display = 'none'; // Hide guide if we have the native button
+        });
+
+        installBtn.addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                if (outcome === 'accepted') {
+                    installBtn.style.display = 'none';
+                }
+                deferredPrompt = null;
+            }
+        });
+
+        // If no install prompt support (like iOS or unsecure HTTP), show guide on mobile
+        // If no install prompt support (like iOS or unsecure HTTP), show guide on mobile
+        // FORCE CHECK: Logic to Help User
+        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+        // Add a manual help button
+        const helpBtn = document.createElement('button');
+        helpBtn.innerText = "❓ No veo el botón de instalar";
+        helpBtn.className = "btn-outline";
+        helpBtn.style.marginTop = "10px";
+        helpBtn.style.fontSize = "0.8rem";
+        helpBtn.style.padding = "8px";
+        helpBtn.style.width = "auto";
+        helpBtn.onclick = () => {
+            guide.style.display = (guide.style.display === 'none') ? 'block' : 'none';
+        };
+
+        if (isMobile) {
+            document.getElementById('pwa-install-area').appendChild(helpBtn);
+            // Default to showing guide if button is hidden after a timeout
+            setTimeout(() => {
+                if (getComputedStyle(installBtn).display === 'none') {
+                    guide.style.display = 'block';
+                }
+            }, 1000);
+        }
+    </script>
+</body>
+
+</html>

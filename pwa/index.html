@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scanner App v3.2</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    <link rel="manifest" href="manifest.json">
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    <style>
+        /* Colores: #a5bf00 (Verde), #008ea9 (Azul), #ffffff (Blanco) */
+        :root {
+            --verde: #a5bf00;
+            --azul: #008ea9;
+            --blanco: #ffffff;
+        }
+
+        body {
+            background-color: var(--blanco);
+            color: var(--azul);
+            font-family: -apple-system, sans-serif;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* --- VIEWS --- */
+        .view {
+            display: none;
+            padding: 20px;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            box-sizing: border-box;
+            animation: fadeIn 0.3s;
+        }
+
+        .view.active {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        /* --- COMPONENTS --- */
+        .btn {
+            background-color: var(--verde);
+            color: var(--blanco);
+            border: none;
+            padding: 15px;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            width: 100%;
+            margin-bottom: 15px;
+            cursor: pointer;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(165, 191, 0, 0.3);
+        }
+
+        .btn:hover,
+        .btn:active {
+            background-color: var(--azul);
+            box-shadow: 0 4px 15px rgba(0, 142, 169, 0.3);
+        }
+
+        .btn-large {
+            padding: 30px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.2rem;
+            background: var(--blanco);
+            border: 3px solid var(--azul);
+            color: var(--azul);
+            box-shadow: 0 8px 20px rgba(0, 142, 169, 0.15);
+        }
+
+        .btn-large i {
+            font-size: 2rem;
+        }
+
+        .btn-large:active {
+            border-color: var(--verde);
+            background: var(--verde);
+            color: var(--blanco);
+            transform: scale(0.98);
+        }
+
+        .btn-secondary {
+            background: var(--blanco);
+            border: 2px solid var(--azul);
+            color: var(--azul);
+            box-shadow: none;
+        }
+
+        .btn-secondary:hover {
+            background: var(--azul);
+            color: var(--blanco);
+        }
+
+        .btn-danger {
+            background: var(--azul);
+        }
+
+        .card {
+            background: var(--blanco);
+            padding: 20px;
+            border-radius: 12px;
+            width: 100%;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 20px rgba(0, 142, 169, 0.1);
+            border: 2px solid var(--azul);
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            border: 2px solid var(--azul);
+            background: var(--blanco);
+            color: var(--azul);
+            box-sizing: border-box;
+            font-size: 1rem;
+        }
+
+        input:focus {
+            border-color: var(--verde);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(165, 191, 0, 0.2);
+        }
+
+        label {
+            align-self: flex-start;
+            margin-bottom: 5px;
+            color: var(--azul);
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        /* --- SCANNER --- */
+        #reader {
+            width: 100%;
+            background: var(--azul);
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        /* --- HEADER --- */
+        .top-bar {
+            width: 100%;
+            padding: 15px 20px;
+            background: var(--azul);
+            border-bottom: 3px solid var(--verde);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0, 142, 169, 0.2);
+        }
+
+        h2 {
+            margin: 0;
+            font-size: 1.2rem;
+            color: var(--blanco);
+        }
+
+        h3 {
+            color: var(--azul);
+        }
+
+        .user-tag {
+            font-size: 0.8rem;
+            color: var(--blanco);
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- TOP BAR -->
+    <div class="top-bar">
+        <div style="display:flex; align-items:center; gap:10px;">
+            <img src="../logo/logo.jpeg" style="height:35px; border-radius:4px; background:white; padding:2px;">
+            <h2 id="page-title" style="font-size:1.1rem;">Inventario</h2>
+        </div>
+        <div id="user-info" class="user-tag" onclick="logout()"></div>
+    </div>
+
+    <!-- VIEW: MENU -->
+    <div id="view-menu" class="view active">
+        <button class="btn btn-large" onclick="openScanMode('lookup')">
+            <i>🔍</i> Consultar Producto
+        </button>
+        <button class="btn btn-large" onclick="checkAuthAndAdd()">
+            <i>➕</i> Entrada de Stock
+        </button>
+        <button class="btn btn-large" onclick="checkAuthAndExit()"
+            style="border-color: var(--verde); background: rgba(165,191,0,0.1);">
+            <i>📤</i> Salida de Stock
+        </button>
+
+        <p style="margin-top:20px; color:#64748b; font-size:0.8rem; text-align: center;">v3.6 Mobile</p>
+    </div>
+
+    <!-- VIEW: LOGIN -->
+    <div id="view-login" class="view">
+        <h3 style="margin-bottom:20px;">Iniciar Sesión</h3>
+        <p style="color:#94a3b8; margin-bottom:20px;">Necesitas acceso para agregar productos.</p>
+
+        <input type="text" id="login-user" placeholder="Usuario">
+        <input type="password" id="login-pass" placeholder="Contraseña">
+
+        <button class="btn" onclick="performLogin()">Entrar</button>
+        <button class="btn btn-secondary" onclick="showView('view-menu')">Cancelar</button>
+    </div>
+
+    <!-- VIEW: SCANNER -->
+    <div id="view-scanner" class="view">
+        <div id="reader"></div>
+        <p id="scan-instruction" style="text-align: center; color: #94a3b8;">Apuntando cámara...</p>
+        <button class="btn btn-secondary" onclick="stopScanner()">Regresar</button>
+    </div>
+
+    <!-- VIEW: RESULT (LOOKUP) -->
+    <div id="view-result" class="view">
+        <div class="card" style="text-align: center;">
+            <h1 id="res-price" style="font-size: 3rem; color: var(--success); margin: 10px 0;">$0.00</h1>
+            <h2 id="res-name">Nombre Producto</h2>
+            <p id="res-stock" style="color: #94a3b8; margin-top: 10px;">Stock: 0</p>
+            <div id="res-barcode" style="font-family: monospace; color: var(--primary); margin-top: 10px;">CODE</div>
+        </div>
+        <button class="btn" onclick="openScanMode('lookup')">Escanear Otro</button>
+        <button class="btn btn-secondary" onclick="showView('view-menu')">Menú Principal</button>
+    </div>
+
+    <!-- VIEW: STOCK UPDATE -->
+    <div id="view-stock-update" class="view">
+        <h3>Actualizar Stock</h3>
+        <div class="card" style="text-align: center;">
+            <p style="color:#94a3b8;">Producto Existente</p>
+            <h2 id="stock-name" style="color:var(--primary); margin: 10px 0;">Nombre</h2>
+            <p>Stock Actual: <strong id="stock-current">0</strong></p>
+
+            <div style="margin-top:20px; text-align: left;">
+                <label>Cantidad a Agregar (+)</label>
+                <input type="number" id="stock-add-qty" placeholder="Ej. 12" value="1"
+                    style="font-size: 1.5rem; text-align: center;">
+            </div>
+        </div>
+
+        <input type="hidden" id="stock-barcode">
+
+        <button class="btn" onclick="submitStockUpdate()">✅ Agregar al Inventario</button>
+        <button class="btn btn-secondary" onclick="showView('view-menu')">Cancelar</button>
+    </div>
+
+    <!-- VIEW: ADD FORM -->
+    <div id="view-add" class="view">
+        <h3>Nuevo Producto</h3>
+
+        <div class="card">
+            <label>Código de Barras</label>
+            <input type="text" id="new-barcode" readonly style="background: #334155;">
+
+            <label>Foto del Producto</label>
+            <!-- Custom Camera Input -->
+            <input type="file" id="new-image" accept="image/*" capture="environment">
+
+            <label>Nombre</label>
+            <input type="text" id="new-name" placeholder="Ej. Papas Fritas">
+
+            <!-- Categoría -->
+            <label>Categoría</label>
+            <select id="new-category"
+                style="width:100%; padding:12px; margin-bottom:15px; border-radius:8px; border:2px solid var(--azul); background:var(--blanco); color:var(--azul);">
+                <option value="">Cargando categorías...</option>
+            </select>
+
+            <!-- Precio hidden (send 0) -->
+            <input type="hidden" id="new-price" value="0">
+
+            <label>Stock Inicial</label>
+            <input type="number" id="new-stock" placeholder="0" value="1">
+        </div>
+
+        <button class="btn" onclick="submitNewProduct()">Guardar Producto</button>
+        <button class="btn btn-secondary" onclick="showView('view-menu')">Cancelar</button>
+    </div>
+
+    <!-- VIEW: STOCK EXIT (SALIDA) -->
+    <div id="view-stock-exit" class="view">
+        <h3>📤 Salida de Stock</h3>
+        <div class="card" style="text-align: center;">
+            <p style="color:#94a3b8;">Producto a Entregar</p>
+            <h2 id="exit-name" style="color:var(--azul); margin: 10px 0;">Nombre</h2>
+            <p>Stock Actual: <strong id="exit-current" style="color:var(--verde);">0</strong></p>
+
+            <div style="margin-top:20px; text-align: left;">
+                <label>Cantidad a Entregar</label>
+                <input type="number" id="exit-qty" placeholder="1" value="1" min="1"
+                    style="font-size: 1.5rem; text-align: center;">
+
+                <label style="margin-top:15px;">Entregado a (trabajador)</label>
+                <input type="text" id="exit-recipient" placeholder="Nombre del trabajador">
+
+                <label style="margin-top:15px;">Área Responsable</label>
+                <select id="exit-area"
+                    style="width:100%; padding:12px; border-radius:8px; border:2px solid var(--azul); background:var(--blanco); color:var(--azul);">
+                    <option value="">Cargando áreas...</option>
+                </select>
+
+                <label style="margin-top:15px;">Notas (opcional)</label>
+                <input type="text" id="exit-notes" placeholder="Ej: Para proyecto X">
+            </div>
+        </div>
+
+        <input type="hidden" id="exit-barcode">
+        <input type="hidden" id="exit-product-id">
+
+        <button class="btn" onclick="submitStockExit()" style="background:var(--verde);">📤 Registrar Salida</button>
+        <button class="btn btn-secondary" onclick="showView('view-menu')">Cancelar</button>
+    </div>
+
+    <script>
+        // STATE
+        let currentUser = null;
+        let scanMode = 'lookup'; // 'lookup', 'add', or 'exit'
+        let html5QrCode = null;
+
+        // AUTH CHECK ON LOAD
+        // We can't easily valid php session via JS without a request, 
+        // we assume logged out until we try to add.
+
+        function showView(id) {
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+
+            // Dynamic Titles
+            const titles = {
+                'view-menu': 'Inventario',
+                'view-login': 'Acceso',
+                'view-scanner': 'Escaneando...',
+                'view-result': 'Resultado',
+                'view-add': 'Alta de Producto',
+                'view-stock-update': 'Entrada de Stock',
+                'view-stock-exit': 'Salida de Stock'
+            };
+            document.getElementById('page-title').textContent = titles[id] || 'App';
+        }
+
+        // --- SCANNER LOGIC ---
+
+        function openScanMode(mode) {
+            scanMode = mode;
+            showView('view-scanner');
+            startScanner();
+        }
+
+        function startScanner() {
+            if (!html5QrCode) html5QrCode = new Html5Qrcode("reader");
+
+            const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+            html5QrCode.start({ facingMode: "environment" }, config, onScanSuccess)
+                .catch(err => {
+                    alert("Error cámara: " + err);
+                    showView('view-menu');
+                });
+        }
+
+        function stopScanner() {
+            if (html5QrCode && html5QrCode.isScanning) {
+                html5QrCode.stop().then(() => {
+                    showView('view-menu');
+                });
+            } else {
+                showView('view-menu');
+            }
+        }
+
+        async function onScanSuccess(decodedText) {
+            html5QrCode.stop(); // Stop scanning once we have a code
+
+            if (scanMode === 'lookup') {
+                lookupProduct(decodedText);
+            } else if (scanMode === 'add') {
+                // Check if exists first
+                checkExistsAndSetupAdd(decodedText);
+            } else if (scanMode === 'exit') {
+                // Check product and setup exit form
+                checkExistsAndSetupExit(decodedText);
+            }
+        }
+
+        // --- LOOKUP ---
+
+        async function lookupProduct(barcode) {
+            try {
+                const res = await fetch('api_lookup.php?barcode=' + barcode);
+                const data = await res.json();
+
+                if (data.status === 'found') {
+                    document.getElementById('res-price').textContent = "$" + data.product.rate;
+                    document.getElementById('res-name').textContent = data.product.product_name;
+                    document.getElementById('res-stock').textContent = "Stock: " + data.product.quantity;
+                    document.getElementById('res-barcode').textContent = barcode;
+                    showView('view-result');
+                } else {
+                    alert("Producto no encontrado.");
+                    showView('view-menu');
+                }
+            } catch (e) { alert("Error de red"); }
+        }
+
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('../sw.js', { scope: '../' }).then(reg => {
+                console.log('Service Worker Registered');
+
+                // --- AUTO UPDATE CHECK SYSTEM ---
+                // Verifica si hay nueva versión en el servidor cada vez que se abre la app
+                setInterval(() => {
+                    reg.update();
+                }, 60 * 60 * 1000); // Check hourly too
+
+                fetch('../version.json', { cache: "no-store" })
+                    .then(response => response.json())
+                    .then(data => {
+                        const currentBuild = localStorage.getItem('app_build_version');
+                        if (currentBuild && parseInt(currentBuild) < data.build) {
+                            console.log("Nueva versión detectada. Actualizando...");
+
+                            // Clear all caches
+                            caches.keys().then(names => {
+                                for (let name of names) caches.delete(name);
+                            });
+
+                            // Update Service Worker
+                            reg.update().then(() => {
+                                localStorage.setItem('app_build_version', data.build);
+                                // Force reload to get new files
+                                window.location.reload(true);
+                            });
+                        } else if (!currentBuild) {
+                            // first run
+                            localStorage.setItem('app_build_version', data.build);
+                        }
+                    })
+                    .catch(err => console.log("Offline or version check failed"));
+
+            });
+        }
+
+        // --- ADD PRODUCT FLOW ---
+
+        function checkAuthAndAdd() {
+            if (currentUser) {
+                openScanMode('add');
+            } else {
+                showView('view-login');
+            }
+        }
+
+        async function performLogin() {
+            const u = document.getElementById('login-user').value;
+            const p = document.getElementById('login-pass').value;
+
+            const fd = new FormData();
+            fd.append('username', u);
+            fd.append('password', p);
+
+            const res = await fetch('api_login.php', { method: 'POST', body: fd });
+            const data = await res.json();
+
+            if (data.status === 'success') {
+                currentUser = data.user;
+                document.getElementById('user-info').textContent = "Hola, " + currentUser;
+                openScanMode('add'); // Proceed to add
+            } else {
+                alert(data.message);
+            }
+        }
+
+        async function checkExistsAndSetupAdd(barcode) {
+            // First check if it exists (we reuse look up)
+            const res = await fetch('api_lookup.php?barcode=' + barcode);
+            const data = await res.json();
+
+            if (data.status === 'found') {
+                // CASE 1: Product Exists -> Show Stock Update View
+                document.getElementById('stock-name').textContent = data.product.product_name;
+                document.getElementById('stock-current').textContent = data.product.quantity;
+                document.getElementById('stock-barcode').value = barcode;
+                document.getElementById('stock-add-qty').value = "1"; // Reset to 1
+
+                showView('view-stock-update');
+            } else {
+                // CASE 2: New Product -> Show Create Form
+                document.getElementById('new-barcode').value = barcode;
+                document.getElementById('new-name').value = '';
+                document.getElementById('new-price').value = '0'; // Default 0
+                document.getElementById('new-stock').value = '1';
+                document.getElementById('new-image').value = null;
+                showView('view-add');
+                loadCategoriesPwa();
+            }
+        }
+
+        async function submitStockUpdate() {
+            const barcode = document.getElementById('stock-barcode').value;
+            const qty = document.getElementById('stock-add-qty').value;
+
+            if (qty <= 0) {
+                alert("La cantidad debe ser mayor a 0");
+                return;
+            }
+
+            const fd = new FormData();
+            fd.append('barcode', barcode);
+            fd.append('quantity', qty);
+
+            try {
+                const res = await fetch('api_add_stock.php', { method: 'POST', body: fd });
+                const data = await res.json();
+
+                if (data.status === 'success') {
+                    alert("✅ Stock Actualizado Correctamente");
+                    showView('view-menu');
+                } else {
+                    alert("Error: " + data.message);
+                }
+            } catch (e) {
+                alert("Error de conexión");
+            }
+        }
+
+        // --- STOCK EXIT FLOW ---
+
+        function checkAuthAndExit() {
+            if (currentUser) {
+                openScanMode('exit');
+            } else {
+                // Need to login first, but remember we want exit mode
+                scanMode = 'exit';
+                showView('view-login');
+            }
+        }
+
+        async function checkExistsAndSetupExit(barcode) {
+            const res = await fetch('api_lookup.php?barcode=' + barcode);
+            const data = await res.json();
+
+            if (data.status === 'found') {
+                document.getElementById('exit-name').textContent = data.product.product_name;
+                document.getElementById('exit-current').textContent = data.product.quantity;
+                document.getElementById('exit-barcode').value = barcode;
+                document.getElementById('exit-product-id').value = data.product.product_id;
+                document.getElementById('exit-qty').value = "1";
+                document.getElementById('exit-qty').max = data.product.quantity;
+                document.getElementById('exit-recipient').value = '';
+                document.getElementById('exit-notes').value = '';
+
+                showView('view-stock-exit');
+                loadAreasPwa();
+            } else {
+                alert("Producto no encontrado en el inventario.");
+                showView('view-menu');
+            }
+        }
+
+        async function loadAreasPwa() {
+            try {
+                const res = await fetch('../php_action/fetchAreas.php');
+                const json = await res.json();
+                const select = document.getElementById('exit-area');
+                select.innerHTML = '<option value="">Selecciona un Área</option>';
+
+                if (json.data && json.data.length > 0) {
+                    json.data.forEach(item => {
+                        // item[0]=id, item[1]=name
+                        const option = document.createElement('option');
+                        option.value = item[1]; // We store NAME as value to match backend logic
+                        option.textContent = item[1];
+                        select.appendChild(option);
+                    });
+                }
+            } catch (e) {
+                console.error("Error loading areas", e);
+                document.getElementById('exit-area').innerHTML = '<option value="">Error cargando áreas</option>';
+            }
+        }
+
+        async function submitStockExit() {
+            const productId = document.getElementById('exit-product-id').value;
+            const qty = parseInt(document.getElementById('exit-qty').value);
+            const recipient = document.getElementById('exit-recipient').value.trim();
+            const notes = document.getElementById('exit-notes').value.trim();
+            const area = document.getElementById('exit-area').value;
+            const stockActual = parseInt(document.getElementById('exit-current').textContent);
+
+            if (!recipient) {
+                alert("Ingresa el nombre del trabajador que recibe el producto.");
+                return;
+            }
+
+            if (!area) {
+                alert("Selecciona el Área Responsable");
+                return;
+            }
+
+            if (qty <= 0) {
+                alert("La cantidad debe ser mayor a 0");
+                return;
+            }
+
+            if (qty > stockActual) {
+                alert("No hay suficiente stock. Disponible: " + stockActual);
+                return;
+            }
+
+            const fd = new FormData();
+            fd.append('productId', productId);
+            fd.append('cantidad', qty);
+            fd.append('destinatario', recipient);
+            fd.append('notas', notes);
+
+            try {
+                const res = await fetch('api_stock_exit.php', { method: 'POST', body: fd });
+                const data = await res.json();
+
+                if (data.success) {
+                    alert("✅ Salida registrada correctamente\nNuevo stock: " + data.new_stock);
+                    showView('view-menu');
+                } else {
+                    alert("Error: " + data.message);
+                }
+            } catch (e) {
+                alert("Error de conexión");
+            }
+        }
+
+        async function loadCategoriesPwa() {
+            try {
+                const res = await fetch('../php_action/fetchCategories.php');
+                const json = await res.json();
+                const select = document.getElementById('new-category');
+                select.innerHTML = '<option value="">Selecciona una Categoría</option>';
+
+                if (json.data && json.data.length > 0) {
+                    json.data.forEach(item => {
+                        // item[0]=id, item[1]=name, item[2]=status
+                        // We use ID for category
+                        const option = document.createElement('option');
+                        option.value = item[0];
+                        option.textContent = item[1];
+                        select.appendChild(option);
+                    });
+                }
+            } catch (e) {
+                console.error("Error loading categories", e);
+                document.getElementById('new-category').innerHTML = '<option value="">Error cargando</option>';
+            }
+        }
+
+        async function submitNewProduct() {
+            const fd = new FormData();
+            fd.append('barcode', document.getElementById('new-barcode').value);
+            fd.append('productName', document.getElementById('new-name').value);
+            fd.append('rate', "0"); // Default 0
+            fd.append('quantity', document.getElementById('new-stock').value);
+            fd.append('categoryName', document.getElementById('new-category').value);
+            fd.append('brandName', "1"); // Default 1
+
+            const category = document.getElementById('new-category').value;
+            if (!category) {
+                alert("Selecciona una categoría");
+                return;
+            }
+
+            const fileInput = document.getElementById('new-image');
+            if (fileInput.files[0]) {
+                try {
+                    // Show loading message
+                    const submitBtn = document.querySelector('button[onclick="submitNewProduct()"]');
+                    const originalText = submitBtn.textContent;
+                    submitBtn.disabled = true;
+                    submitBtn.textContent = '⏳ Procesando imagen...';
+
+                    // Resize image to max 500px (more aggressive for low memory devices)
+                    const resizedBlob = await resizeImage(fileInput.files[0], 500, 500);
+                    fd.append('productImage', resizedBlob, 'product.jpg');
+
+                    submitBtn.textContent = originalText;
+                    submitBtn.disabled = false;
+                } catch (err) {
+                    alert("Error procesando imagen: " + err + "\n\nIntenta tomar una foto con menos resolución.");
+                    return;
+                }
+            } else {
+                alert("Por favor toma una foto del producto");
+                return;
+            }
+
+            try {
+                const res = await fetch('api_create_mobile.php', { method: 'POST', body: fd });
+                const data = await res.json();
+
+                if (data.status === 'success') {
+                    alert("¡Producto Guardado!");
+                    showView('view-menu');
+                } else {
+                    alert("Error: " + data.message);
+                }
+            } catch (e) {
+                alert("Error enviando datos");
+            }
+        }
+
+        // Image Resize Utility - Optimized for low memory devices
+        function resizeImage(file, maxWidth, maxHeight) {
+            return new Promise((resolve, reject) => {
+                // Validate file size (max 10MB source)
+                if (file.size > 10 * 1024 * 1024) {
+                    reject('La imagen es demasiado grande. Por favor toma una foto con menor calidad.');
+                    return;
+                }
+
+                const img = document.createElement('img');
+                const reader = new FileReader();
+
+                reader.onload = (e) => {
+                    img.src = e.target.result;
+                };
+
+                reader.onerror = () => reject('Error leyendo la imagen');
+
+                img.onload = () => {
+                    try {
+                        let width = img.width;
+                        let height = img.height;
+
+                        // Calculate new dimensions
+                        if (width > height) {
+                            if (width > maxWidth) {
+                                height *= maxWidth / width;
+                                width = maxWidth;
+                            }
+                        } else {
+                            if (height > maxHeight) {
+                                width *= maxHeight / height;
+                                height = maxHeight;
+                            }
+                        }
+
+                        // Round to integers
+                        width = Math.round(width);
+                        height = Math.round(height);
+
+                        const canvas = document.createElement('canvas');
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext('2d', { alpha: false }); // Disable alpha for better performance
+
+                        // White background
+                        ctx.fillStyle = '#FFFFFF';
+                        ctx.fillRect(0, 0, width, height);
+
+                        // Draw image
+                        ctx.drawImage(img, 0, 0, width, height);
+
+                        canvas.toBlob((blob) => {
+                            if (blob) {
+                                // Clean up memory
+                                img.src = '';
+                                canvas.width = 0;
+                                canvas.height = 0;
+                                resolve(blob);
+                            } else {
+                                reject('Error al comprimir la imagen');
+                            }
+                        }, 'image/jpeg', 0.5); // 50% Quality for smaller file size
+                    } catch (err) {
+                        reject('Error procesando imagen: ' + err.message);
+                    }
+                };
+
+                img.onerror = () => reject('Error cargando la imagen');
+
+                // Start reading the file
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function logout() {
+            // Simple client side logout
+            if (confirm("¿Cerrar sesión?")) {
+                currentUser = null;
+                document.getElementById('user-info').textContent = "";
+                showView('view-menu');
+            }
+        }
+
+    </script>
+</body>
+
+</html>

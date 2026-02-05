@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>Test Product Creation</title>
+    <style>
+        body {
+            font-family: Arial;
+            padding: 20px;
+        }
+
+        .log {
+            background: #f0f0f0;
+            padding: 10px;
+            margin: 10px 0;
+            border-left: 3px solid #007bff;
+        }
+
+        .error {
+            border-color: red;
+            background: #ffe0e0;
+        }
+
+        .success {
+            border-color: green;
+            background: #e0ffe0;
+        }
+    </style>
+</head>
+
+<body>
+    <h2>🧪 Test de Creación de Producto</h2>
+
+    <form id="testForm">
+        <label>Código de Barras:</label><br>
+        <input type="text" id="barcode" value="TEST123456" style="width:100%; padding:5px;"><br><br>
+
+        <label>Nombre:</label><br>
+        <input type="text" id="name" value="Producto de Prueba" style="width:100%; padding:5px;"><br><br>
+
+        <label>Categoría:</label><br>
+        <select id="category" style="width:100%; padding:5px;">
+            <option value="">Cargando...</option>
+        </select><br><br>
+
+        <label>Stock:</label><br>
+        <input type="number" id="stock" value="10" style="width:100%; padding:5px;"><br><br>
+
+        <label>Imagen:</label><br>
+        <input type="file" id="image" accept="image/*"><br><br>
+
+        <button type="submit">Enviar Prueba</button>
+    </form>
+
+    <h3>Logs:</h3>
+    <div id="logs"></div>
+
+    <script>
+        function log(msg, type = 'log') {
+            const div = document.createElement('div');
+            div.className = 'log ' + type;
+            div.textContent = new Date().toLocaleTimeString() + ' - ' + msg;
+            document.getElementById('logs').prepend(div);
+        }
+
+        // Load categories
+        fetch('../php_action/fetchCategories.php')
+            .then(r => r.json())
+            .then(data => {
+                const select = document.getElementById('category');
+                select.innerHTML = '<option value="">Selecciona</option>';
+                if (data.data) {
+                    data.data.forEach(cat => {
+                        const opt = document.createElement('option');
+                        opt.value = cat[0];
+                        opt.textContent = cat[1];
+                        select.appendChild(opt);
+                    });
+                    log('Categorías cargadas: ' + data.data.length, 'success');
+                }
+            })
+            .catch(e => log('Error cargando categorías: ' + e, 'error'));
+
+        document.getElementById('testForm').onsubmit = async function (e) {
+            e.preventDefault();
+
+            const fd = new FormData();
+            fd.append('barcode', document.getElementById('barcode').value);
+            fd.append('productName', document.getElementById('name').value);
+            fd.append('categoryName', document.getElementById('category').value);
+            fd.append('quantity', document.getElementById('stock').value);
+            fd.append('rate', '0');
+            fd.append('brandName', '1');
+
+            const fileInput = document.getElementById('image');
+            if (fileInput.files[0]) {
+                fd.append('productImage', fileInput.files[0]);
+                log('Imagen adjunta: ' + fileInput.files[0].name + ' (' + Math.round(fileInput.files[0].size / 1024) + ' KB)');
+            } else {
+                log('Sin imagen', 'error');
+                return;
+            }
+
+            log('Enviando a api_create_mobile.php...');
+
+            try {
+                const res = await fetch('api_create_mobile.php', {
+                    method: 'POST',
+                    body: fd
+                });
+
+                log('HTTP Status: ' + res.status);
+
+                const text = await res.text();
+                log('Respuesta (raw): ' + text);
+
+                try {
+                    const data = JSON.parse(text);
+                    if (data.status === 'success') {
+                        log('✅ SUCCESS: ' + data.message, 'success');
+                    } else {
+                        log('❌ ERROR: ' + data.message, 'error');
+                    }
+                } catch (e) {
+                    log('Error parseando JSON: ' + e, 'error');
+                }
+            } catch (e) {
+                log('Error de red: ' + e, 'error');
+            }
+        };
+    </script>
+</body>
+
+</html>

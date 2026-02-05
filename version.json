@@ -1,0 +1,5 @@
+{
+    "build": 15,
+    "date": "2026-02-05",
+    "note": "Optimize image compression to prevent crashes"
+}

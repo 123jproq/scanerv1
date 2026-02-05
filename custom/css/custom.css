@@ -1,0 +1,285 @@
+/* === CLÍNICA SAN JAVIER - INVENTARIO PREMIUM === */
+/* Colores Base: #a5bf00 (Verde), #008ea9 (Azul), #ffffff (Blanco) */
+
+:root {
+  --verde: #a5bf00;
+  --azul: #008ea9;
+  --blanco: #ffffff;
+
+  /* Variaciones generadas con opacidades para mantener la paleta estricta */
+  --azul-claro-bg: rgba(0, 142, 169, 0.05);
+  /* Fondo sutil */
+  --azul-sombra: rgba(0, 142, 169, 0.25);
+  --verde-sombra: rgba(165, 191, 0, 0.3);
+}
+
+/* === ANIMACIONES GLOBALES === */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulseGlow {
+  0% {
+    box-shadow: 0 0 0 0 rgba(165, 191, 0, 0.4);
+  }
+
+  70% {
+    box-shadow: 0 0 0 10px rgba(165, 191, 0, 0);
+  }
+
+  100% {
+    box-shadow: 0 0 0 0 rgba(165, 191, 0, 0);
+  }
+}
+
+body {
+  background-color: var(--blanco) !important;
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif !important;
+  color: var(--azul) !important;
+  background-image: radial-gradient(circle at 10% 20%, var(--azul-claro-bg) 0%, transparent 20%),
+    radial-gradient(circle at 90% 80%, rgba(165, 191, 0, 0.05) 0%, transparent 20%) !important;
+  min-height: 100vh;
+}
+
+/* === NAVBAR FLOTANTE === */
+.navbar {
+  background: rgba(255, 255, 255, 0.95) !important;
+  backdrop-filter: blur(10px) !important;
+  border: none !important;
+  box-shadow: 0 5px 30px var(--azul-sombra) !important;
+  min-height: 70px !important;
+  margin-bottom: 40px !important;
+  transition: all 0.3s ease !important;
+}
+
+.navbar-brand {
+  padding: 10px 15px !important;
+}
+
+.navbar-brand img {
+  height: 50px !important;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+.navbar-nav>li>a {
+  color: var(--azul) !important;
+  font-weight: 600 !important;
+  padding: 25px 20px !important;
+  position: relative !important;
+  transition: all 0.3s ease !important;
+}
+
+/* Efecto Hover Navbar - Línea animada */
+.navbar-nav>li>a::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 0;
+  height: 4px;
+  background: var(--verde);
+  transition: all 0.3s ease;
+  transform: translateX(-50%);
+  border-radius: 4px 4px 0 0;
+}
+
+.navbar-nav>li>a:hover::after {
+  width: 80%;
+}
+
+.navbar-nav>li>a:hover {
+  color: var(--verde) !important;
+  background: transparent !important;
+  transform: translateY(-2px);
+}
+
+/* === CARDS & PANELES CON PROFUNIDAD === */
+.panel {
+  background: var(--blanco) !important;
+  border: none !important;
+  border-radius: 20px !important;
+  box-shadow: 0 10px 40px -10px rgba(0, 142, 169, 0.15) !important;
+  overflow: hidden !important;
+  transition: transform 0.3s ease, box-shadow 0.3s ease !important;
+  animation: fadeIn 0.6s ease-out;
+}
+
+.panel:hover {
+  transform: translateY(-5px) !important;
+  box-shadow: 0 20px 50px -10px rgba(0, 142, 169, 0.25) !important;
+}
+
+.panel-default>.panel-heading {
+  background: linear-gradient(135deg, var(--azul) 0%, #007a91 100%) !important;
+  color: var(--blanco) !important;
+  padding: 20px 30px !important;
+  border: none !important;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Decoración en Headers */
+.panel-default>.panel-heading::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -10%;
+  width: 100px;
+  height: 100px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+}
+
+.panel-heading h3 {
+  color: var(--blanco) !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.5px !important;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* === BOTONES MODERNOS === */
+.btn {
+  border-radius: 50px !important;
+  /* Pill shape */
+  font-weight: 700 !important;
+  padding: 12px 30px !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  border: none !important;
+  position: relative;
+  overflow: hidden;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  font-size: 13px !important;
+}
+
+.btn-primary {
+  background: linear-gradient(45deg, var(--verde), #9ab300) !important;
+  color: var(--blanco) !important;
+  box-shadow: 0 4px 15px var(--verde-sombra) !important;
+}
+
+.btn-primary:hover {
+  background: linear-gradient(45deg, #b8d600, var(--verde)) !important;
+  box-shadow: 0 8px 25px var(--verde-sombra) !important;
+  transform: scale(1.05);
+}
+
+.btn-default {
+  background: var(--blanco) !important;
+  color: var(--azul) !important;
+  border: 2px solid var(--azul-claro-bg) !important;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05) !important;
+}
+
+.btn-default:hover {
+  border-color: var(--azul) !important;
+  color: var(--azul) !important;
+  transform: translateY(-2px);
+}
+
+/* Botón de Acción Principal (Pulse) */
+#toggleFormBtn {
+  animation: pulseGlow 2s infinite;
+}
+
+/* === TABLAS ESTILIZADAS === */
+.table {
+  margin: 0 !important;
+}
+
+.table>thead>tr>th {
+  background: var(--azul-claro-bg) !important;
+  color: var(--azul) !important;
+  font-weight: 800 !important;
+  text-transform: uppercase !important;
+  font-size: 12px !important;
+  padding: 15px 20px !important;
+  border: none !important;
+  letter-spacing: 1px;
+}
+
+.table>tbody>tr {
+  transition: background 0.2s ease;
+}
+
+.table>tbody>tr>td {
+  padding: 20px !important;
+  border-bottom: 1px solid rgba(0, 142, 169, 0.05) !important;
+  color: #4a5568 !important;
+  /* Gris oscuro azulado para facilitar lectura */
+  font-weight: 500;
+}
+
+.table>tbody>tr:hover {
+  background-color: rgba(165, 191, 0, 0.05) !important;
+  transform: scale(1.01);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+  z-index: 10;
+  position: relative;
+}
+
+/* === FORMULARIOS === */
+.form-control {
+  background: var(--blanco) !important;
+  border: 2px solid #eef2f6 !important;
+  border-radius: 12px !important;
+  padding: 15px !important;
+  height: auto !important;
+  box-shadow: none !important;
+  transition: all 0.3s ease !important;
+  color: var(--azul) !important;
+}
+
+.form-control:focus {
+  border-color: var(--azul) !important;
+  box-shadow: 0 0 0 4px var(--azul-sombra) !important;
+  transform: translateY(-2px);
+}
+
+label.control-label {
+  color: var(--azul) !important;
+  font-weight: 700 !important;
+  margin-bottom: 10px !important;
+}
+
+/* === UTILIDADES === */
+.kv-file-zoom,
+.div-hide {
+  display: none !important;
+}
+
+/* Dashboard Cards (Metrics) */
+.card-metric {
+  background: linear-gradient(135deg, var(--blanco) 0%, #fcfcfc 100%);
+  border-radius: 20px;
+  padding: 30px;
+  text-align: center;
+  box-shadow: 0 10px 30px var(--azul-sombra);
+  position: relative;
+  overflow: hidden;
+  border-bottom: 5px solid var(--verde);
+}
+
+.card-metric h1 {
+  font-size: 4rem;
+  color: var(--azul);
+  margin: 10px 0;
+  font-weight: 800;
+}
+
+/* DataTables Styling */
+.dataTables_wrapper .dataTables_paginate .paginate_button.current {
+  background: var(--azul) !important;
+  color: var(--blanco) !important;
+  border-radius: 50% !important;
+  border: none !important;
+  box-shadow: 0 4px 10px var(--azul-sombra);
+}
