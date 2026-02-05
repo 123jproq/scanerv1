@@ -38,7 +38,7 @@ Sistema completo de gestión de inventario con aplicación web administrativa y 
 
 1. **Clonar el repositorio**
 ```bash
-git clone https://github.com/TU_USUARIO/scaner.git
+git clone https://github.com/123jproq/scaner.git
 cd scaner
 ```
 
